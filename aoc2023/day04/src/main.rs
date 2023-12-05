@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, hash::Hash};
+use std::{collections::HashMap, fs};
 
 #[derive(Debug)]
 struct Card {
@@ -65,8 +65,6 @@ fn process_part1(all_cards: &Vec<Card>) {
         println!("card id: {:?} count: {:?}", card.id, cur_count);
         if cur_count == 0 {
             continue;
-        } else if cur_count == 1 {
-            total_sum += 1;
         } else {
             total_sum += 2_u32.pow(cur_count - 1);
         }
@@ -75,22 +73,18 @@ fn process_part1(all_cards: &Vec<Card>) {
 }
 
 fn process_part2(all_cards: &Vec<Card>) {
-    let mut total_cards = 0;
-    let mut cards_amount: HashMap<_, _> =
-        (1..=all_cards.len() as u32).map(|key| (key, 1)).collect();
-    println!("{:?}", cards_amount);
+    let mut multiplier = vec![1usize; all_cards.len()];
 
-    for card in all_cards.iter() {
+    for (index, card) in all_cards.iter().enumerate() {
         let mut cur_count = 0;
         for el in &card.numbers {
             if card.drawn_numbers.contains(&el) {
                 cur_count += 1;
-                println!("{:?}", cur_count);
             }
         }
-        for i in 1..cur_count {
-            *cards_amount.entry(card.id + i).or_insert(1) += 1;
+        for i in index + 1..index + 1 + cur_count {
+            multiplier[i] += multiplier[index];
         }
     }
-    println!("{:?}", cards_amount);
+    println!("{:?}", multiplier.iter().sum::<usize>());
 }
