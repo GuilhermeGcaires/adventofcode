@@ -26,34 +26,29 @@ fn process_part1(map: &HashMap<String, Vec<String>>, instructions: &String) {
 
 fn process_part2(map: &HashMap<String, Vec<String>>, instructions: &String) {
     let mut count = 0;
-
-    let mut current_nodes: Vec<String> = map
+    let dirs: Vec<usize> = instructions
+        .chars()
+        .map(|ch| if ch == 'L' { 0 } else { 1 })
+        .collect();
+    let queue = map
         .keys()
         .filter(|key| key.ends_with('A'))
-        .cloned()
-        .collect();
+        .collect::<Vec<_>>();
 
-    while !current_nodes.iter().all(|node| node.ends_with('Z')) {
-        let mut result = Vec::new();
+    let mut ans = Vec::new();
+    for entry in queue {
+        let mut current = entry.clone();
+        let mut count = 0;
 
-        for current_node in &current_nodes {
-            for instruction in instructions.chars() {
-                count += 1;
-                let next_node = if instruction == 'L' {
-                    map.get(current_node).unwrap()[0].clone()
-                } else if instruction == 'R' {
-                    map.get(current_node).unwrap()[1].clone()
-                } else {
-                    current_node.clone()
-                };
-                result.push(next_node);
-            }
+        while !current.ends_with('Z') {
+            current = get(&map, &current, &dirs, count);
+            count += 1;
         }
 
-        current_nodes = result;
+        ans.push(count)
     }
 
-    println!("{:?}", count);
+    println!("{:?}", lcm_of(&ans));
 }
 
 fn parse(input: &str) -> (HashMap<String, Vec<String>>, String, (String, Vec<String>)) {
@@ -76,4 +71,52 @@ fn parse_line(line: &str) -> (String, Vec<String>) {
     let branches = vec![left.to_string(), right.to_string()];
 
     (root.to_string(), branches)
+}
+
+fn get(
+    map: &HashMap<String, Vec<String>>,
+    current: &String,
+    dirs: &Vec<usize>,
+    count: usize,
+) -> String {
+    let instr_len = dirs.len();
+    map.get(current).unwrap()[dirs[count % instr_len]].clone()
+}
+
+fn gcd(x: usize, y: usize) -> usize {
+    if y == 0 {
+        x
+    } else {
+        gcd(y, x % y)
+    }
+}
+
+fn _gcd_of(list: &[usize]) -> usize {
+    let mut iter = list.iter();
+    let first = *iter.next().unwrap();
+    let second = *iter.next().unwrap();
+
+    let mut ans = gcd(first, second);
+    for next in iter {
+        ans = gcd(ans, *next)
+    }
+
+    ans
+}
+
+fn lcm(x: usize, y: usize) -> usize {
+    x * y / gcd(x, y)
+}
+
+fn lcm_of(list: &[usize]) -> usize {
+    let mut iter = list.iter();
+    let first = *iter.next().unwrap();
+    let second = *iter.next().unwrap();
+
+    let mut ans = lcm(first, second);
+    for next in iter {
+        ans = lcm(ans, *next)
+    }
+
+    ans
 }
